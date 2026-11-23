@@ -216,3 +216,46 @@ Two paths, both already documented above:
 
 Practical consequence: the only way forward is to **capture an id from a real partner link**, then replay it
 via the install-referrer path (`referrer_replay`). Nothing on the client can synthesise one.
+
+---
+
+## Xiaomi × Google One — official terms (researched 2026-11-23 via device CDP)
+
+Method note: python web_read.py reads the device Chromium over Chrome DevTools
+(db forward tcp:9222 localabstract:chrome_devtools_remote). That routes around both the broken
+search tool and the fact that Chromium content never appears in uiautomator.
+
+### The offer, verbatim from search-summarised terms
+
+- **3 months of Google AI Pro at no cost**, Gemini Advanced features plus cloud storage.
+- **Redemption window:** purchase, activation and redemption must complete by **12/13 June 2027**.
+- **Eligibility:** 18+, qualifying Google Payments account in a supported market, and an **eligible
+  Xiaomi or Leica device**. Some existing or former Google One / AI Pro subscribers are **excluded**,
+  as are people who are not the plan manager.
+- **Billing:** valid payment method required at sign-up; converts to the standard monthly rate
+  automatically unless cancelled.
+- **Cancellation:** can cancel during the trial; returning the device may auto-cancel.
+- **Redeem:** buy and activate the device, then open Gemini or Google One — **or use the Xiaomi partner
+  link** — and tap *Try Google AI Pro* → *Start trial*.
+
+The partner link is the one already found in this account's CTA cache:
+`https://one.google.com/partner-eft-onboard` … it 404s without a qualifying device context.
+
+### Why this closes the Xiaomi route as a *better* path
+
+| Route | Length | Tier | Reachable without purchase |
+|---|---|---|---|
+| **Play g1.2tb.ai.18months_eft** | **18 months** | Google AI Pro (5 TB), full | **yes** — verified claimable |
+| Jio carrier EFT | 18 months | promotional Pro, **no Neon/Antigravity** | no (ticket) |
+| Xiaomi bundle | **3 months** | Google AI Pro | no (device-gated) |
+
+Xiaomi grants three months, not eighteen, and only against a device purchase registered to the account.
+So the device route is both shorter and harder than the Play offer this session already verified.
+
+### Also learned
+
+- A Xiaomi/Leica device requirement plus a Google Payments market requirement means the gate is
+  `(account, device ownership record, storefront)` — consistent with §11.1, where spoofing
+  `Build` on the emulator changed nothing.
+- "Some existing or former subscribers excluded" is why a test account must be clean of prior Google
+  One/AI Pro history, not merely subscription-free.
