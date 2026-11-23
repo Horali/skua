@@ -425,3 +425,47 @@ GoPay: **** 8271 | Subscribe
 
 No `--stack`, no `subscriptionUpdateParams`: a plain first purchase. The "direct free" framing from
 the third-party report holds.
+
+---
+
+## 11. Device / OEM bundle offers (Xiaomi, Oppo, Pixel) — what they actually are
+
+Checked 2026-11-23 against the Google One APK (19.3 MB, 67,687 dex strings).
+
+**They are not Play products, and there is no SKU to query.** The app implements a separate
+partner-entitlement subsystem:
+
+```
+PartnerOfferEligibilityDataService.java
+CheckPartnerOfferEligibilityResponse
+processAndLogPartnerOfferEligibilityResponse
+SqliteKeyValueCache:PartnerOfferEligibilityCache.db
+RedeemPartnerOfferFragmentPeer.java
+PARTNER_OFFER_ELIGIBLE / PARTNER_OFFER_INELIGIBLE
+PARTNER_EFT_DETAILS_PAGE_TAP_REDEEM
+CHECK_PARTNER_OFFER_ERROR_NO_CPID
+CarrierCpid, &cpid=, fake_cpid
+MY_PIXEL_EFT_HOME_UPSELL_CARD / MY_PIXEL_EFT_UPSELL_NOTIFICATION
+```
+
+Reading that:
+
+- `EFT` here means *extended free trial* granted through a **partner**, keyed on a **CPID**
+  (carrier/partner id), and resolved by a server eligibility call.
+- The result is cached in `PartnerOfferEligibilityCache.db`. On this emulator that database does
+  **not exist** — no eligibility check has ever run, which is consistent with the device never being
+  a partner device.
+- Redemption is a UI flow (`PARTNER_OFFER_DETAILS_PAGE_TAP_REDEEM`), not a billing flow.
+
+### Consequences for this toolkit
+
+- `offerwatch.py` cannot see these: it enumerates Play subscriptions, and partner EFTs never appear
+  in `queryProductDetailsAsync`.
+- Spoofing `ro.product.*` cannot work, which the handoff already reported from the outside. The
+  reason is now visible in code: eligibility is not derived from the model string, it is derived from
+  a CPID supplied by partner/carrier signals.
+- The only client-side artefact would be the eligibility cache, and it does not exist until a check
+  runs on an actually-eligible device.
+
+**Conclusion: device-bundle plans are a different subsystem. No further Play-side work will find
+them, and nothing client-side manufactures a CPID.**
