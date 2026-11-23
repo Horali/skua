@@ -1,19 +1,19 @@
-# Coding-agent apps — Play offer sweep
+﻿# Coding-agent apps â€” Play offer sweep
 
-Session 2026-11-23 11:47–12:05. Account `scripts4`, storefront **ID** (IDR).
+Session 2026-11-23 11:47â€“12:05. Account `scripts4`, storefront **ID** (IDR).
 Goal: apps whose product is a coding agent / coding-capable Pro plan, swept with `appoffer.py`.
 
 ## Availability in the ID storefront
 
 | Package | Play install here | Billing stack | Offers |
 |---|---|---|---|
-| `com.replit.app` | ✅ installed | stock BillingClient (265 refs), no RevenueCat | not yet enumerated (needs sign-in) |
-| `ai.mistral.chat` | ✅ installed, signed in | stock BillingClient (352 refs), no RevenueCat | **none** — see below |
-| `ai.x.grok` | ❌ "available only for your other devices" | — | — |
-| `com.poe.android` | ❌ same | — | — |
-| `com.you.android` | ❌ not in storefront | — | — |
-| `com.blackboxai.blackbox` | ❌ not in storefront | — | — |
-| `com.codesandbox.android` | ❌ not in storefront | — | — |
+| `com.replit.app` | âœ… installed | stock BillingClient (265 refs), no RevenueCat | not yet enumerated (needs sign-in) |
+| `ai.mistral.chat` | âœ… installed, signed in | stock BillingClient (352 refs), no RevenueCat | **none** â€” see below |
+| `ai.x.grok` | âŒ "available only for your other devices" | â€” | â€” |
+| `com.poe.android` | âŒ same | â€” | â€” |
+| `com.you.android` | âŒ not in storefront | â€” | â€” |
+| `com.blackboxai.blackbox` | âŒ not in storefront | â€” | â€” |
+| `com.codesandbox.android` | âŒ not in storefront | â€” | â€” |
 
 Grok and Poe both render an Install button bound to the physical phone (`SM-S936B`), not the emulator
 (`SM-G9980`); installing there was not attempted.
@@ -35,7 +35,18 @@ Vibe Pro  Starting today  Rp 2.590.000/year    + tax   GoPay **** 8271
 ```
 
 **Single phase in both.** No trial, no intro discount. The "20% off" badge is arithmetic baked into the
-yearly base plan (269.000 × 12 = 3.228.000 → 2.590.000), not a Play offer phase.
+yearly base plan (269.000 Ã— 12 = 3.228.000 â†’ 2.590.000), not a Play offer phase.
+
+## Replit (Core)
+
+Plan sheet, verified by screenshot and Play's own checkout:
+
+```
+Monthly  Replit Core  Rp   339.000/month
+Yearly   Replit Core  Rp 3.690.000/year   (monthly-equivalent 4.068.000, ~9% baked in)
+```
+
+Both Play sheets: `Starting today`, single phase, no trial, no intro discount.
 
 ## Detection notes
 
