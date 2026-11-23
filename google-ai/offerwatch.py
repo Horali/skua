@@ -80,6 +80,41 @@ CAMPAIGN_CORES = [
 CAMPAIGN_DURATIONS = ["1month", "2months", "3months", "4months", "6months", "12months"]
 CAMPAIGN_DISCOUNTS = ["50p", "60p", "70p", "75p", "80p", "85p", "90p", "95p"]
 
+# Second naming family, found 2026-11-23 from a third-party report: the duration is part
+# of the PRODUCT id and the offer is bare, e.g.
+#   g1.2tb.ai.12months_eft -> offer "eft-12months" (Free/P1Y)   [direct purchase]
+#   g1.2tb.6months_eft     -> offer "freetrial"     (Free/P26W2D)
+# These are the "ready direct free" products: they do not need the --stack path that
+# g1.2tb.ai.subs_variant requires. Missing them made an earlier sweep look exhaustive
+# when it was not.
+DIRECT_EFT_CORES = [
+    "g1.2tb", "g1.2tb.ai", "g1.play.2tb.ai", "g1.5tb", "g1.10tb", "g1.20tb",
+    "g1.100gb", "g1.ai.pro", "g1.play.ai.pro", "g1.2tb.ai.pro",
+]
+DIRECT_EFT_DURATIONS = ["1month", "2months", "3months", "4months", "6months",
+                        "9months", "12months", "18months", "24months"]
+
+# .v2 product revisions and family-tier guesses.
+V2_CORES = ["g1.20tb", "g1.30tb", "g1.2tb", "g1.2tb.ai", "g1.10tb", "g1.5tb",
+            "g1.play.20tb", "g1.ai.pro", "g1.play.ai.pro"]
+FAMILY_IDS = ["g1.family", "g1.family.2tb", "g1.family.5tb", "g1.family.ai"]
+
+
+def direct_eft_candidates() -> set[str]:
+    out = set()
+    for core in DIRECT_EFT_CORES:
+        for dur in DIRECT_EFT_DURATIONS:
+            out.add(f"{core}.{dur}_eft")
+    return out
+
+
+def revision_candidates() -> set[str]:
+    out = set(FAMILY_IDS)
+    for core in V2_CORES:
+        out.add(f"{core}.v2")
+        out.add(f"{core}.family")
+    return out
+
 
 def campaign_candidates() -> set[str]:
     out = set()
@@ -133,7 +168,8 @@ def discover_from_device() -> set[str]:
 
 
 def generate_candidates(found: set[str]) -> list[str]:
-    cands = set(SEED_SKUS) | found | campaign_candidates()
+    cands = (set(SEED_SKUS) | found | campaign_candidates()
+             | direct_eft_candidates() | revision_candidates())
     for root in ROOTS:
         for leaf in LEAVES:
             cands.add(root + leaf)

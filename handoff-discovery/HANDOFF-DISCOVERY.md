@@ -373,3 +373,42 @@ requires either a new campaign Google has not shipped yet, or a different accoun
    a subscribed one).
 3. Only then decide whether stacking is even a question. It is not recommended (HANDOFF.md Â§7.3).
 
+
+### 10.8 Second naming family — direct _eft products (found after §10.7)
+
+A third-party report (different storefront, USD) showed products shaped like
+`g1.2tb.ai.12months_eft` with a bare `eft-12months` offer. Our generator never produced that
+shape: §10.7 had swept only `<core>.<N>months_ip_<P>p.acq` and the `.subs_variant` trials.
+
+Querying that family on the ID storefront returned **8 more products and doubled the zero-price
+count from 7 to 21**:
+
+| Product | Offer id | First phase | Period | Then |
+|---|---|---|---|---|
+| `g1.2tb.ai.18months_eft` | eft-18months | **Free** | **P1Y6M** | Rp 309.000/P1M |
+| `g1.2tb.ai.12months_eft` | eft-12months | **Free** | P1Y | Rp 309.000/P1M |
+| `g1.2tb.ai.6months_eft` | eft-6months | **Free** | P6M | Rp 309.000/P1M |
+| `g1.2tb.ai.4months_eft` | eft-4months | **Free** | P4M | Rp 309.000/P1M |
+| `g1.2tb.ai.3months_eft` | eft-3months | **Free** | P3M | Rp 309.000/P1M |
+| `g1.2tb.ai.2months_eft` | eft-2months | **Free** | P2M | Rp 309.000/P1M |
+| `g1.2tb.ai.1month_eft` | eft-1month | **Free** | P1M | Rp 309.000/P1M |
+| `g1.2tb.6months_eft` | freetrial | **Free** | P26W2D | Rp 158.000/P1M |
+| `g1.2tb.3months_eft` | freetrial | **Free** | P13W1D | Rp 158.000/P1M |
+| `g1.2tb.1month_eft` | freetrial | **Free** | P4W3D | Rp 158.000/P1M |
+| `g1.100gb.9months_eft` | freetrial | **Free** | P39W3D | Rp 32.000/P1M |
+| `g1.100gb.3months_eft` | freetrial | **Free** | P13W1D | Rp 32.000/P1M |
+| `g1.100gb.2months_eft` | freetrial | **Free** | P8W6D | Rp 32.000/P1M |
+| `g1.100gb.1month_eft` | freetrial | **Free** | P1M | Rp 32.000/P1M |
+
+Also confirmed: `g1.20tb.v2` exists as an Ultra product revision (base price only).
+
+Why it matters beyond the extra SKUs: the third-party report labels these **READY_DIRECT_FREE** —
+directly purchasable — versus the `.subs_variant` trials which they mark NEEDS_BASE_3M_FIRST
+(the `--stack` path). If that distinction holds, `g1.2tb.ai.<N>months_eft` is the clean claim
+path and stacking was never required.
+
+Still missing: **no family-tier SKU returned** — `g1.family`, `g1.family.2tb`, `g1.family.5tb`,
+`g1.family.ai` and `<core>.family` all came back empty on the ID storefront.
+
+`offerwatch.py` now generates both families (`direct_eft_candidates()`, `revision_candidates()`),
+581 candidates by default, no `--extra` needed.
