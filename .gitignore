@@ -1,0 +1,37 @@
+# Unrelated sibling projects in the workspace — not part of this repo.
+/magisk/
+/mumu/
+/ghostsam/
+/shots/
+/dirtyfrag-app/
+/tools-apk/
+
+# Upstream checkout history. The pinned source is vendored below; the clone's
+# own .git is kept locally as .git.bak so upstream diffs stay available.
+/google-ai/.git.bak/
+
+# Build/runtime artifacts, never committed.
+/google-ai/.venv/
+/google-ai/.tmp/
+/google-ai/tmp*/
+/google-ai/google-ai-play-db-*/
+/google-ai/reports/
+/google-ai/tmpdb/
+/google-ai/tmpui/
+/google-ai/tmpdir/
+/google-ai/logs/
+/google-ai/ultra0-report/
+/google-ai/accounts.txt
+/google-ai/probe.*
+/google-ai/__pycache__/
+__pycache__/
+*.pyc
+
+# Binary tools: reproducible from upstream releases.
+*.xz
+frida-server-*
+*.whl
+*.whl.metadata
+
+# Screenshots captured during a run.
+*.png
