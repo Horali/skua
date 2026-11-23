@@ -501,3 +501,45 @@ AssignEftPromoCode
 
 Two distinct programmes: Pixel EFT (device ownership) and partner-device EFT (Xiaomi/Oppo bundles, redeemed
 via a partner code). Neither is a Play SKU and neither can be manufactured client-side.
+
+---
+
+## 12. The intro discount is reachable from the app after all (2026-11-23 14:05)
+
+The very first task of this workstream was "drive one *Get discount* checkout tap and capture what Play
+carries". It turns out the app exposes that page, and it was never in the home UI.
+
+Deep link `https://one.google.com/ai` is claimed by Google One (manifest LITERAL `/ai`), so it opens
+an in-app plans page — not a browser. That page renders **intro pricing** that the home screen does not:
+
+```
+Google AI Plus   ID R 75.000/mo  ->  IDR  19.000/mo for 3 months, then IDR  75.000/mo
+Google AI Pro    IDR 309.000/mo  ->  IDR  77.000/mo for 3 months, then IDR 309.000/mo
+Annual: Save 16%
+```
+
+Tapping *Get Google AI Pro* opens Play's sheet with **two phases**:
+
+```
+Google AI Pro (5 TB) | Google One
+Starting today        Rp 77.000/month   + tax
+Starting 23 Feb 2027  Rp 309.000/month   + tax
+...reminder 7 days before your intro price ends
+```
+
+### Why this matters
+
+- `IDR 77.000` is exactly the first phase of `g1.2tb.ai.3months_ip_75p.acq` (75% off 309.000), which
+  `offerwatch.py` enumerated earlier from Billing alone. So the UI and the campaign SKU namespace are the
+  same thing, finally connected: **the campaign offers ARE the intro prices on this page.**
+- A clean account sees and can claim it. This is the general-purpose discount path that works even where
+  the `eft-*` trials are unavailable.
+- Still worse than the zero-price route: `g1.2tb.ai.18months_eft` remains 18 months at Rp 0.
+
+### How to reach it
+
+```powershell
+adb shell am start -a android.intent.action.VIEW -d "https://one.google.com/ai"
+```
+
+Or in-browser `one.google.com/ai` redirects into the app. The home screen never shows these prices.
