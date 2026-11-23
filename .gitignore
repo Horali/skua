@@ -35,3 +35,7 @@ frida-server-*
 
 # Screenshots captured during a run.
 *.png
+
+# Local artifacts — never commit
+/google-ai/g1_sdk_database*
+/termux.apk
