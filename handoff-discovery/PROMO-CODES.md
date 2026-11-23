@@ -63,3 +63,47 @@ eligible / not-eligible / expired.
 support pages render client-side, so a plain fetch returns either a login redirect or an empty shell.
 Enumerating *currently live* public codes therefore was not possible here; the structural findings
 above come from the APK, which is authoritative for the mechanism.
+
+---
+
+## The Jio activation page, seen directly (2026-11-23)
+
+A screenshot of a live Jio activation link shows what a carrier EFT actually is:
+
+```
+Badges : "Penawaran berakhir 26 Okt"   (offer ended 26 Oct)
+         "Tidak perlu bayar"            (no payment required)
+Title  : "Aktifkan paket Google AI Pro Anda dari Jio
+          seharga ₹35.100* gratis selama 18 bulan"
+Charge : "Anda membayar: ₹0"    ->  [ Aktifkan paket ]
+Footer : status langganan dibagikan kepada Jio untuk memulai,
+         menghentikan, atau mengubah paket Anda.
+```
+
+URL shape:
+
+```
+one.google.com/u/1/activate-plan/subscription/new/AQCpilGy_JiaeaAJ-43QonOH9ZJTZuWZRUkPGE94fiWu6k8ViP18V-AVhKS2j9AT5byZCyplq7sQo3-86eHQ...
+```
+
+### What this establishes
+
+1. **The carrier grant is the same 18-month product we already enumerated.** `gratis selama 18 bulan` maps to
+   `g1.2tb.ai.18months_eft` -> offer `eft-18months` -> Free / **P1Y6M**, which this session verified is
+   claimable on a clean Play account for Rp 0. A carrier link grants the same entitlement; it is not a
+   different or better plan.
+2. **Activation links are one-time tokens.** The path carries an opaque `AQCpilGy...` token, the page is
+   account-scoped (`/u/1/`), and the shown offer had already ended 26 Oct and been claimed. Nothing in that
+   URL is reusable.
+3. **These links open in a browser, not the app.** Google One's manifest claims `/redeemoffer` and `/ai*`
+   only — not `/u/*/activate-plan/*` — so Chromium renders them. `redeem_watch.py` handles that path via
+   the system resolver.
+4. The page states the subscription is **shared with the carrier** for start/stop/change. So the entitlement
+   is carrier-managed, which is consistent with the CPID/partner-offer subsystem in §11: eligibility and
+   lifecycle live server-side, and the link is only a claim ticket.
+
+### Practical consequence
+
+There is nothing to extract from a claimed, expired token. A *fresh* unclaimed activation link is the only
+useful input, and even then the outcome for a non-Indian account is expected to be UNAVAILABLE or
+NOT ELIGIBLE — worth measuring once, with `redeem_watch.py`, if such a link is ever available.
