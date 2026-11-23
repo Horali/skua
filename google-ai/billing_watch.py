@@ -43,6 +43,8 @@ def main() -> int:
     ap.add_argument("--no-launch", action="store_true")
     ap.add_argument("--spawn", action="store_true",
                     help="spawn the app suspended, hook, then resume — catches queries fired at startup")
+    ap.add_argument("--multiloader", action="store_true",
+                    help="instrument billing builders in every ClassLoader (handles split-dex apps)")
     ap.add_argument("--lazy", action="store_true",
                     help="watch class loading too, for apps that load billing classes after attach")
     ap.add_argument("--out", default="reports")
@@ -86,7 +88,7 @@ def main() -> int:
             with lock:
                 tokens.append(p["value"])
             print(f"  TOKEN {p['value'][:56]}... ({len(p['value'])})")
-        elif ev in ("hooked", "hook_err", "ready", "armed", "instrumented", "inst_err", "loaders_watched", "loader_err"):
+        elif ev in ("hooked", "hook_err", "ready", "armed", "instrumented", "inst_err", "loaders_watched", "loader_err", "default_loader", "loadclass_watched", "enum_err"):
             print(f"  [{ev}] {p.get('target') or ''} {p.get('overloads') or ''} {p.get('m') or ''}".rstrip())
             if ev == "armed":
                 ready.set()
@@ -102,7 +104,7 @@ def main() -> int:
     else:
         sess = dev.attach(pid)
     script = sess.create_script(
-        (Path(__file__).parent / "assets" / "frida" / ("billing_watch_lazy.js" if args.lazy else "billing_watch.js")).read_text("utf-8"))
+        (Path(__file__).parent / "assets" / "frida" / ("billing_multiloader.js" if args.multiloader else ("billing_watch_lazy.js" if args.lazy else "billing_watch.js"))).read_text("utf-8"))
     script.on("message", on_msg)
     script.load()
     ready.wait(timeout=20)
@@ -153,5 +155,6 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
 
 
