@@ -1,4 +1,4 @@
-"""billing_watch — log what an installed app asks Play for.
+﻿"""billing_watch â€” log what an installed app asks Play for.
 
 For apps whose product ids are server-delivered, hooking the app's own BillingClient
 is the only reliable way to learn them: open the paywall and the app queries the ids
@@ -41,6 +41,10 @@ def main() -> int:
     ap.add_argument("--serial", default="127.0.0.1:16384")
     ap.add_argument("--watch", type=float, default=90)
     ap.add_argument("--no-launch", action="store_true")
+    ap.add_argument("--spawn", action="store_true",
+                    help="spawn the app suspended, hook, then resume — catches queries fired at startup")
+    ap.add_argument("--lazy", action="store_true",
+                    help="watch class loading too, for apps that load billing classes after attach")
     ap.add_argument("--out", default="reports")
     args = ap.parse_args()
 
@@ -82,21 +86,32 @@ def main() -> int:
             with lock:
                 tokens.append(p["value"])
             print(f"  TOKEN {p['value'][:56]}... ({len(p['value'])})")
-        elif ev in ("hooked", "hook_err", "ready", "armed"):
+        elif ev in ("hooked", "hook_err", "ready", "armed", "instrumented", "inst_err", "loaders_watched", "loader_err"):
             print(f"  [{ev}] {p.get('target') or ''} {p.get('overloads') or ''} {p.get('m') or ''}".rstrip())
             if ev == "armed":
                 ready.set()
 
     dev = frida.get_device_manager().add_remote_device(f"127.0.0.1:{FRIDA_PORT}")
-    sess = dev.attach(pid)
+    if args.spawn:
+        ultra0.sh("shell", f"am force-stop {args.package}")
+        time.sleep(1)
+        spawn_pid = dev.spawn([args.package])
+        pid = spawn_pid
+        print(f"spawned suspended: {pid}")
+        sess = dev.attach(pid)
+    else:
+        sess = dev.attach(pid)
     script = sess.create_script(
-        (Path(__file__).parent / "assets" / "frida" / "billing_watch.js").read_text("utf-8"))
+        (Path(__file__).parent / "assets" / "frida" / ("billing_watch_lazy.js" if args.lazy else "billing_watch.js")).read_text("utf-8"))
     script.on("message", on_msg)
     script.load()
     ready.wait(timeout=20)
     time.sleep(1)
+    if args.spawn:
+        dev.resume(pid)
+        print("resumed")
 
-    print(f"\nwatching {args.watch:.0f}s — open the app's paywall now")
+    print(f"\nwatching {args.watch:.0f}s â€” open the app's paywall now")
     deadline = time.time() + args.watch
     last = -1
     while time.time() < deadline:
@@ -120,7 +135,7 @@ def main() -> int:
     for s in uniq:
         print("  ", s)
     if not uniq:
-        print("  (none — the app may not use Play Billing, or the paywall never opened)")
+        print("  (none â€” the app may not use Play Billing, or the paywall never opened)")
 
     outdir = Path(args.out)
     outdir.mkdir(parents=True, exist_ok=True)
@@ -138,3 +153,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
