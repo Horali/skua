@@ -107,3 +107,61 @@ one.google.com/u/1/activate-plan/subscription/new/AQCpilGy_JiaeaAJ-43QonOH9ZJTZu
 There is nothing to extract from a claimed, expired token. A *fresh* unclaimed activation link is the only
 useful input, and even then the outcome for a non-Indian account is expected to be UNAVAILABLE or
 NOT ELIGIBLE — worth measuring once, with `redeem_watch.py`, if such a link is ever available.
+
+---
+
+## Dissection: how a partner activation actually authenticates
+
+Two delivery channels, both server-issued, neither forgeable client-side.
+
+### Channel A — activation token (the Jio link)
+
+```
+https://serviceactivation.google.com/activate-plan/subscription/new/<opaque token>
+```
+
+- Host is **not referenced anywhere** in the Google One APK (`serviceactivation` and `activate-plan`: 0 hits),
+  and the bare host 404s. So the flow is web-only; the app is not a participant.
+- Auth = the normal Google account session. The token identifies the purchased entitlement; the server binds it
+  to whichever account is signed in at redemption, once.
+- The token in the screenshot was already consumed and the campaign closed 26 Oct; the live check returns 404.
+
+### Channel B — install referrer campaign (the mechanism that matters for Xiaomi)
+
+The APK consumes Play's Install Referrer:
+
+```
+com.android.vending.INSTALL_REFERRER
+com.google.android.finsky.BIND_GET_INSTALL_REFERRER_SERVICE
+ImmediatePurchaseFragment / StartImmediatePurchase
+campaignId, gclid, gbraid, gad_campaignid, pcampaignid
+PerkByCampaignIdCache.db, UserBenefitsByCampaignIdCache.db
+GetEftPromoCodeInfo
+```
+
+So a partner campaign is delivered as a **referrer string recorded by Play at install time**, containing a
+`campaignId`. The app reads it, asks Google's promo API about that campaign, and renders
+an immediate-purchase or redeem fragment if the server says the account qualifies.
+
+**This explains the spoof failure in §11.1 exactly.** The gate is
+`(account, campaignId from install referrer, server-side entitlement)` — not `Build.MODEL`. Spoofing the
+device changes a value the eligibility decision never reads, which is why the app did not even run an
+eligibility check.
+
+### The one testable lever left for the Xiaomi route
+
+Play honours a `referrer` parameter on install links:
+
+```
+https://play.google.com/store/apps/details?id=com.google.android.apps.subscriptions.red&referrer=campaignId%3D<ID>
+```
+
+Meaning: uninstall Google One, reinstall it via a link carrying a known `campaignId`, and Play will store
+that referrer for (package, account). The app then evaluates the campaign for our account.
+
+This is **not** a spoof — it is the delivery mechanism itself, reproduced. The server still decides eligibility
+(carrier/device/region/cohort), so success is not guaranteed, but it is the only path that exercises the real
+check without a purchase.
+
+Prerequisite: at least one real `campaignId` for a device/carrier EFT campaign. Known fragments from the APK:
+`FAMILY_SHARING` (a different campaign), `GEMINI_DEVICE_EFT` (a campaign family name, not necessarily an id).
