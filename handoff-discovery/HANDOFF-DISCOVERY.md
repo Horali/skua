@@ -469,3 +469,35 @@ Reading that:
 
 **Conclusion: device-bundle plans are a different subsystem. No further Play-side work will find
 them, and nothing client-side manufactures a CPID.**
+
+### 11.1 Device spoof test — model identity is not the gate
+
+Tried the obvious attack: present a different device to the app itself.
+
+`spoof_build.js` overrides `android.os.Build` (MODEL/BRAND/MANUFACTURER/DEVICE/PRODUCT/BOARD/FINGERPRINT)
+and `SystemProperties.get` inside the Google One process; `spoof_boot.py` spawns the app **suspended**,
+applies the spoof, then resumes, so it boots believing it is a `Pixel 9 Pro` (`caiman`) rather than
+`SM-G9980`.
+
+Result:
+
+- no `MY_PIXEL_EFT_*` upsell card on home
+- no partner/EFF offer surfaced anywhere in the app
+- `PartnerOfferEligibilityCache.db` still **does not exist** — the app never even ran an eligibility check
+
+So device identity as observed by the app is **not** what gates these offers. The entitlement is resolved
+server-side against the account/device record Google already holds (the same reason the handoff records
+that spoofing `ro.product.*` for the Xiaomi slug returns "no longer available").
+
+Campaign names confirmed in the APK, for the record:
+
+```
+GEMINI_DEVICE_EFT
+MY_PIXEL_EFT_HOME_UPSELL_CARD / MY_PIXEL_EFT_UPSELL_NOTIFICATION
+https://one.google.com/offer/pixel4
+XIAOMI_C2C
+AssignEftPromoCode
+```
+
+Two distinct programmes: Pixel EFT (device ownership) and partner-device EFT (Xiaomi/Oppo bundles, redeemed
+via a partner code). Neither is a Play SKU and neither can be manufactured client-side.
