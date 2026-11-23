@@ -10,6 +10,13 @@
       com.snothin.ghostsam    GhostSam
       me.weishu.kernelsu      KernelSU manager
 
+  IMPORTANT — one hook per boot:
+  DirtyFrag's exploit hook can only fire ONCE per boot. If it reports
+      "/dev/df exists but no su appeared: the hook already fired this boot"
+      "ERROR - hooked earlier this boot with no su - reboot and run once"
+  then the boot is spent: nothing will work until a normal reboot. Reboot, then
+  run DirtyFrag exactly once (SU Manager = KernelSU, then Run exploit). Do not
+  tap Ready in GhostSam first - that consumes the hook without staging su.
   Removing the apps does NOT unload the already-loaded kernel module, so root
   keeps working for the rest of the boot. That is the whole trick:
 
@@ -97,4 +104,5 @@ switch ($true) {
     }
     default { "Nothing to do. Use -On, -Off or -Status." }
 }
+
 
