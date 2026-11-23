@@ -165,3 +165,54 @@ check without a purchase.
 
 Prerequisite: at least one real `campaignId` for a device/carrier EFT campaign. Known fragments from the APK:
 `FAMILY_SHARING` (a different campaign), `GEMINI_DEVICE_EFT` (a campaign family name, not necessarily an id).
+
+---
+
+## Finding the campaign id — what the client will and will not reveal
+
+### The real entry point
+
+The account's own CTA cache (databases/g1_sdk_database_<account>, table `rpc_cache`, 35 `GET_CTA_CONFIG`
+rows) contains the partner onboarding URL:
+
+```
+https://one.google.com/partner-eft-onboard
+```
+
+That is the page the Xiaomi/Jio-style partner flow funnels through — not a token URL and not the
+`serviceactivation` host.
+
+### What it does without a valid campaign
+
+```
+GET https://one.google.com/partner-eft-onboard                -> 404 "We can't display the page"
+GET ...?campaignId=test                                       -> 404
+GET ...?campaign_id=test                                      -> 404
+GET ...?token=test                                            -> 404
+```
+
+So the page requires context the client cannot invent. Campaign ids are **server-issued per campaign**
+and are not present in the APK: a scan for campaign-id-shaped UPPER_SNAKE constants returns 5,086 names,
+but they are UI element ids (`CHECK_PARTNER_OFFER_PAGE`, `AI_CREDITS_PURCHASE_CTA` …), not campaign ids.
+
+### How the app can receive a campaign
+
+Two paths, both already documented above:
+
+1. **Play install referrer** — `campaignId` inside the referrer recorded at install time.
+2. **Deep link** — the DeepLink activity logs `No link parameter found for Google One deep link … Falling
+   back to the original URL`, i.e. it expects a `link=` parameter. Injecting an activity referrer via
+   `am start --es android.intent.extra.REFERRER` produces no campaign handling; only that warning.
+
+### Where the id therefore comes from in practice
+
+| Source | Contains campaign id? |
+|---|---|
+| Partner marketing email / retailer page (Xiaomi, Jio) | yes — in the link path or Play referrer |
+| Play install link with `&referrer=campaignId%3D…` | yes |
+| Google One CTA config (server) | path only, no id |
+| APK constants | no |
+| Guessing the endpoint | no — every probe 404s |
+
+Practical consequence: the only way forward is to **capture an id from a real partner link**, then replay it
+via the install-referrer path (`referrer_replay`). Nothing on the client can synthesise one.
