@@ -543,3 +543,49 @@ adb shell am start -a android.intent.action.VIEW -d "https://one.google.com/ai"
 ```
 
 Or in-browser `one.google.com/ai` redirects into the app. The home screen never shows these prices.
+
+---
+
+## 13. The .99-for-12-months Black Friday offer — why it was missed
+
+A third-party screenshot shows, on a USD account:
+
+```
+Google AI Pro (5 TB)          [Discounted price]      .99 / month
+.99 -> .99/month for 12 months, .99/mo after      [ Get add-on ]
+```
+
+That is a 90% intro over **12 months**, delivered through the **add-on** buyflow, for an existing
+Google One member.
+
+### Three independent reasons the sweeps could not see it
+
+1. **Member gating.** The app implements add-ons as a separate purchase path:
+   `COMMERCE_BUYFLOW_FOR_ADDONS`, `CLIENT_PURCHASE_CAPABILITY_ADD_ONS`,
+   `NOT_ELIGIBLE_EXISTING_MEMBER_WITH_ADDON`, and error strings
+   `"Offer token is empty for addon"` / `"Product details json is empty for addon"`.
+   Every account used in this workstream has been a **non-member**, so the add-on surface never rendered.
+2. **Storefront.** Campaign SKUs are per-country. The grid already included
+   `<core>.12months_ip_90p.acq` — the exact shape this offer would have — and Play returned **nothing**
+   for it on storefront ID. The 12-month 90% campaign simply is not in this catalogue.
+3. **Surface.** It renders on the member's plans/add-on page, not the home screen. `one.google.com/add-ons`
+   returns 404 without membership context (verified), as does `/partner-eft-onboard`.
+
+### On the "90% off Ultra"
+
+No Ultra offer exists in the ID catalogue: `g1.20tb`, `g1.30tb`, `g1.play.20tb`, `g1.ai.pro` and
+`g1.play.ai.pro` all return base price only, and an Ultra-specific offer string search in the APK returns
+zero hits (campaigns are server-driven). If Ultra discounts exist, they are regional and/or add-on gated like
+this one.
+
+### The experiment that would catch it
+
+Add-on offers require a member. Cheapest path to observe them without touching a clean claiming account:
+
+1. fresh burner, subscribe to the cheapest Google One base plan (Plus 400 GB, IDR 19.000/mo intro);
+2. open `one.google.com/ai` and the member add-on surface;
+3. run `appoffer.py` for the package and look for add-on product ids / two-phase offers.
+
+Do this on a **throwaway** account: holding a base plan changes eligibility, and
+`NOT_ELIGIBLE_EXISTING_MEMBER_WITH_ADDON` suggests member+add-on state is mutually exclusive with some
+promotions.
