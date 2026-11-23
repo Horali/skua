@@ -412,3 +412,16 @@ Still missing: **no family-tier SKU returned** — `g1.family`, `g1.family.2tb`,
 
 `offerwatch.py` now generates both families (`direct_eft_candidates()`, `revision_candidates()`),
 581 candidates by default, no `--extra` needed.
+
+**Verified claimable, same session.** `campaign_claim.py --product g1.2tb.ai.18months_eft --offer eft-18months
+--launch` returned `launchBillingFlow` code 0 and Play's sheet read:
+
+```
+Google AI Pro (5 TB) | Google One | Starting today | 18-month free trial
+Starting 23 May 2028 | Rp 309.000/month | + tax
+You won't be charged if you cancel before 23 May 2028
+GoPay: **** 8271 | Subscribe
+```
+
+No `--stack`, no `subscriptionUpdateParams`: a plain first purchase. The "direct free" framing from
+the third-party report holds.
